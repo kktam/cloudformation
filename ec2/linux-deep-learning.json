@@ -1,0 +1,419 @@
+{
+    "Description": "Cloud formation template for Linux Deep Learning desktop",
+    "Parameters": {
+        "AMI": {
+            "Default": "ami-0b63040ee445728bf",
+            "Description": "Deep Learning AMI (Ubuntu) Version 17.0",
+            "Type": "String"
+        },
+        "EBSVolumeSize": {
+            "Default": "80",
+            "Description": "The size of the EBS volume",
+            "Type": "String"
+        },
+        "InstanceName": {
+            "Default": "deeplearn",
+            "Description": "EC2 Instance Name",
+            "Type": "String"
+        },
+        "InstanceType": {
+            "AllowedValues": [
+                "t2.micro",
+                "t2.small",
+                "t2.medium",
+                "t2.large",			
+                "t3.micro",
+                "t3.small",
+                "t3.medium",
+                "t3.large",
+                "c4.large",
+                "c4.xlarge",
+                "c4.2xlarge",
+                "c4.4xlarge",
+                "c4.8xlarge"
+            ],
+            "ConstraintDescription": "must be a valid EC2 instance type",
+            "Default": "t3.medium",
+            "Description": "EC2 instance type",
+            "Type": "String"
+        },
+        "KeyName": {
+            "Default": "",		
+            "ConstraintDescription": "Must be the name of an existing EC2 KeyPair.",
+            "Description": "Name of an existing EC2 KeyPair to enable SSH access to NAT instances.",
+            "Type": "AWS::EC2::KeyPair::KeyName"
+        },
+        "Subnet": {
+            "Default": "",			
+            "ConstraintDescription": "Must be a valid Subnet.",
+            "Description": "The subnet to place the instance in...",
+            "Type": "AWS::EC2::Subnet::Id"
+        },
+        "VPC": {
+            "Default": "",			
+            "ConstraintDescription": "Must be a valid VPC.",
+            "Description": "The VPC to deploy to...",
+            "Type": "AWS::EC2::VPC::Id"
+        }
+    },
+    "Mappings" : {
+        "Region2Examples" : {
+          "us-east-1"      : { "Examples" : "https://s3.amazonaws.com/cloudformation-examples-us-east-1" },
+          "us-west-2"      : { "Examples" : "https://s3-us-west-2.amazonaws.com/cloudformation-examples-us-west-2" },
+          "us-west-1"      : { "Examples" : "https://s3-us-west-1.amazonaws.com/cloudformation-examples-us-west-1" },
+          "eu-west-1"      : { "Examples" : "https://s3-eu-west-1.amazonaws.com/cloudformation-examples-eu-west-1" },
+          "eu-west-2"      : { "Examples" : "https://s3-eu-west-2.amazonaws.com/cloudformation-examples-eu-west-2" },
+          "eu-west-3"      : { "Examples" : "https://s3-eu-west-3.amazonaws.com/cloudformation-examples-eu-west-3" },
+          "eu-central-1"   : { "Examples" : "https://s3-eu-central-1.amazonaws.com/cloudformation-examples-eu-central-1" },
+          "ap-southeast-1" : { "Examples" : "https://s3-ap-southeast-1.amazonaws.com/cloudformation-examples-ap-southeast-1" },
+          "ap-northeast-1" : { "Examples" : "https://s3-ap-northeast-1.amazonaws.com/cloudformation-examples-ap-northeast-1" },
+          "ap-northeast-2" : { "Examples" : "https://s3-ap-northeast-2.amazonaws.com/cloudformation-examples-ap-northeast-2" },
+          "ap-northeast-3" : { "Examples" : "https://s3-ap-northeast-3.amazonaws.com/cloudformation-examples-ap-northeast-3" },
+          "ap-southeast-2" : { "Examples" : "https://s3-ap-southeast-2.amazonaws.com/cloudformation-examples-ap-southeast-2" },
+          "ap-south-1"     : { "Examples" : "https://s3-ap-south-1.amazonaws.com/cloudformation-examples-ap-south-1" },
+          "us-east-2"      : { "Examples" : "https://s3-us-east-2.amazonaws.com/cloudformation-examples-us-east-2" },
+          "ca-central-1"   : { "Examples" : "https://s3-ca-central-1.amazonaws.com/cloudformation-examples-ca-central-1" },
+          "sa-east-1"      : { "Examples" : "https://s3-sa-east-1.amazonaws.com/cloudformation-examples-sa-east-1" },
+          "cn-north-1"     : { "Examples" : "https://s3.cn-north-1.amazonaws.com.cn/cloudformation-examples-cn-north-1" },
+          "cn-northwest-1" : { "Examples" : "https://s3.cn-northwest-1.amazonaws.com.cn/cloudformation-examples-cn-northwest-1" }
+        },
+        "AWSInstanceType2Arch" : {
+          "t1.micro"    : { "Arch" : "HVM64"  },
+          "t2.nano"     : { "Arch" : "HVM64"  },
+          "t2.micro"    : { "Arch" : "HVM64"  },
+          "t2.small"    : { "Arch" : "HVM64"  },
+          "t2.medium"   : { "Arch" : "HVM64"  },
+          "t2.large"    : { "Arch" : "HVM64"  },
+          "m1.small"    : { "Arch" : "HVM64"  },
+          "m1.medium"   : { "Arch" : "HVM64"  },
+          "m1.large"    : { "Arch" : "HVM64"  },
+          "m1.xlarge"   : { "Arch" : "HVM64"  },
+          "m2.xlarge"   : { "Arch" : "HVM64"  },
+          "m2.2xlarge"  : { "Arch" : "HVM64"  },
+          "m2.4xlarge"  : { "Arch" : "HVM64"  },
+          "m3.medium"   : { "Arch" : "HVM64"  },
+          "m3.large"    : { "Arch" : "HVM64"  },
+          "m3.xlarge"   : { "Arch" : "HVM64"  },
+          "m3.2xlarge"  : { "Arch" : "HVM64"  },
+          "m4.large"    : { "Arch" : "HVM64"  },
+          "m4.xlarge"   : { "Arch" : "HVM64"  },
+          "m4.2xlarge"  : { "Arch" : "HVM64"  },
+          "m4.4xlarge"  : { "Arch" : "HVM64"  },
+          "m4.10xlarge" : { "Arch" : "HVM64"  },
+          "c1.medium"   : { "Arch" : "HVM64"  },
+          "c1.xlarge"   : { "Arch" : "HVM64"  },
+          "c3.large"    : { "Arch" : "HVM64"  },
+          "c3.xlarge"   : { "Arch" : "HVM64"  },
+          "c3.2xlarge"  : { "Arch" : "HVM64"  },
+          "c3.4xlarge"  : { "Arch" : "HVM64"  },
+          "c3.8xlarge"  : { "Arch" : "HVM64"  },
+          "c4.large"    : { "Arch" : "HVM64"  },
+          "c4.xlarge"   : { "Arch" : "HVM64"  },
+          "c4.2xlarge"  : { "Arch" : "HVM64"  },
+          "c4.4xlarge"  : { "Arch" : "HVM64"  },
+          "c4.8xlarge"  : { "Arch" : "HVM64"  },
+          "g2.2xlarge"  : { "Arch" : "HVMG2"  },
+          "g2.8xlarge"  : { "Arch" : "HVMG2"  },
+          "r3.large"    : { "Arch" : "HVM64"  },
+          "r3.xlarge"   : { "Arch" : "HVM64"  },
+          "r3.2xlarge"  : { "Arch" : "HVM64"  },
+          "r3.4xlarge"  : { "Arch" : "HVM64"  },
+          "r3.8xlarge"  : { "Arch" : "HVM64"  },
+          "i2.xlarge"   : { "Arch" : "HVM64"  },
+          "i2.2xlarge"  : { "Arch" : "HVM64"  },
+          "i2.4xlarge"  : { "Arch" : "HVM64"  },
+          "i2.8xlarge"  : { "Arch" : "HVM64"  },
+          "d2.xlarge"   : { "Arch" : "HVM64"  },
+          "d2.2xlarge"  : { "Arch" : "HVM64"  },
+          "d2.4xlarge"  : { "Arch" : "HVM64"  },
+          "d2.8xlarge"  : { "Arch" : "HVM64"  },
+          "hi1.4xlarge" : { "Arch" : "HVM64"  },
+          "hs1.8xlarge" : { "Arch" : "HVM64"  },
+          "cr1.8xlarge" : { "Arch" : "HVM64"  },
+          "cc2.8xlarge" : { "Arch" : "HVM64"  }
+        },
+        "AWSInstanceType2NATArch" : {
+          "t1.micro"    : { "Arch" : "NATHVM64"  },
+          "t2.nano"     : { "Arch" : "NATHVM64"  },
+          "t2.micro"    : { "Arch" : "NATHVM64"  },
+          "t2.small"    : { "Arch" : "NATHVM64"  },
+          "t2.medium"   : { "Arch" : "NATHVM64"  },
+          "t2.large"    : { "Arch" : "NATHVM64"  },
+          "m1.small"    : { "Arch" : "NATHVM64"  },
+          "m1.medium"   : { "Arch" : "NATHVM64"  },
+          "m1.large"    : { "Arch" : "NATHVM64"  },
+          "m1.xlarge"   : { "Arch" : "NATHVM64"  },
+          "m2.xlarge"   : { "Arch" : "NATHVM64"  },
+          "m2.2xlarge"  : { "Arch" : "NATHVM64"  },
+          "m2.4xlarge"  : { "Arch" : "NATHVM64"  },
+          "m3.medium"   : { "Arch" : "NATHVM64"  },
+          "m3.large"    : { "Arch" : "NATHVM64"  },
+          "m3.xlarge"   : { "Arch" : "NATHVM64"  },
+          "m3.2xlarge"  : { "Arch" : "NATHVM64"  },
+          "m4.large"    : { "Arch" : "NATHVM64"  },
+          "m4.xlarge"   : { "Arch" : "NATHVM64"  },
+          "m4.2xlarge"  : { "Arch" : "NATHVM64"  },
+          "m4.4xlarge"  : { "Arch" : "NATHVM64"  },
+          "m4.10xlarge" : { "Arch" : "NATHVM64"  },
+          "c1.medium"   : { "Arch" : "NATHVM64"  },
+          "c1.xlarge"   : { "Arch" : "NATHVM64"  },
+          "c3.large"    : { "Arch" : "NATHVM64"  },
+          "c3.xlarge"   : { "Arch" : "NATHVM64"  },
+          "c3.2xlarge"  : { "Arch" : "NATHVM64"  },
+          "c3.4xlarge"  : { "Arch" : "NATHVM64"  },
+          "c3.8xlarge"  : { "Arch" : "NATHVM64"  },
+          "c4.large"    : { "Arch" : "NATHVM64"  },
+          "c4.xlarge"   : { "Arch" : "NATHVM64"  },
+          "c4.2xlarge"  : { "Arch" : "NATHVM64"  },
+          "c4.4xlarge"  : { "Arch" : "NATHVM64"  },
+          "c4.8xlarge"  : { "Arch" : "NATHVM64"  },
+          "g2.2xlarge"  : { "Arch" : "NATHVMG2"  },
+          "g2.8xlarge"  : { "Arch" : "NATHVMG2"  },
+          "r3.large"    : { "Arch" : "NATHVM64"  },
+          "r3.xlarge"   : { "Arch" : "NATHVM64"  },
+          "r3.2xlarge"  : { "Arch" : "NATHVM64"  },
+          "r3.4xlarge"  : { "Arch" : "NATHVM64"  },
+          "r3.8xlarge"  : { "Arch" : "NATHVM64"  },
+          "i2.xlarge"   : { "Arch" : "NATHVM64"  },
+          "i2.2xlarge"  : { "Arch" : "NATHVM64"  },
+          "i2.4xlarge"  : { "Arch" : "NATHVM64"  },
+          "i2.8xlarge"  : { "Arch" : "NATHVM64"  },
+          "d2.xlarge"   : { "Arch" : "NATHVM64"  },
+          "d2.2xlarge"  : { "Arch" : "NATHVM64"  },
+          "d2.4xlarge"  : { "Arch" : "NATHVM64"  },
+          "d2.8xlarge"  : { "Arch" : "NATHVM64"  },
+          "hi1.4xlarge" : { "Arch" : "NATHVM64"  },
+          "hs1.8xlarge" : { "Arch" : "NATHVM64"  },
+          "cr1.8xlarge" : { "Arch" : "NATHVM64"  },
+          "cc2.8xlarge" : { "Arch" : "NATHVM64"  }
+        },
+        "AWSRegionArch2AMI" : {
+          "us-east-1"        : {"HVM64" : "ami-0ff8a91507f77f867", "HVMG2" : "ami-0a584ac55a7631c0c"},
+          "us-west-2"        : {"HVM64" : "ami-a0cfeed8", "HVMG2" : "ami-0e09505bc235aa82d"},
+          "us-west-1"        : {"HVM64" : "ami-0bdb828fd58c52235", "HVMG2" : "ami-066ee5fd4a9ef77f1"},
+          "eu-west-1"        : {"HVM64" : "ami-047bb4163c506cd98", "HVMG2" : "ami-0a7c483d527806435"},
+          "eu-west-2"        : {"HVM64" : "ami-f976839e", "HVMG2" : "NOT_SUPPORTED"},
+          "eu-west-3"        : {"HVM64" : "ami-0ebc281c20e89ba4b", "HVMG2" : "NOT_SUPPORTED"},
+          "eu-central-1"     : {"HVM64" : "ami-0233214e13e500f77", "HVMG2" : "ami-06223d46a6d0661c7"},
+          "ap-northeast-1"   : {"HVM64" : "ami-06cd52961ce9f0d85", "HVMG2" : "ami-053cdd503598e4a9d"},
+          "ap-northeast-2"   : {"HVM64" : "ami-0a10b2721688ce9d2", "HVMG2" : "NOT_SUPPORTED"},
+          "ap-northeast-3"   : {"HVM64" : "ami-0d98120a9fb693f07", "HVMG2" : "NOT_SUPPORTED"},
+          "ap-southeast-1"   : {"HVM64" : "ami-08569b978cc4dfa10", "HVMG2" : "ami-0be9df32ae9f92309"},
+          "ap-southeast-2"   : {"HVM64" : "ami-09b42976632b27e9b", "HVMG2" : "ami-0a9ce9fecc3d1daf8"},
+          "ap-south-1"       : {"HVM64" : "ami-0912f71e06545ad88", "HVMG2" : "ami-097b15e89dbdcfcf4"},
+          "us-east-2"        : {"HVM64" : "ami-0b59bfac6be064b78", "HVMG2" : "NOT_SUPPORTED"},
+          "ca-central-1"     : {"HVM64" : "ami-0b18956f", "HVMG2" : "NOT_SUPPORTED"},
+          "sa-east-1"        : {"HVM64" : "ami-07b14488da8ea02a0", "HVMG2" : "NOT_SUPPORTED"},
+          "cn-north-1"       : {"HVM64" : "ami-0a4eaf6c4454eda75", "HVMG2" : "NOT_SUPPORTED"},
+          "cn-northwest-1"   : {"HVM64" : "ami-6b6a7d09", "HVMG2" : "NOT_SUPPORTED"}
+        }
+    },    
+    "Resources": {
+        "NodeInstance": {
+            "Metadata": {
+                "AWS::CloudFormation::Init": {
+                    "config": {
+                        "packages": {
+                            "apt": {
+                                "httpd": [],							
+                                "awscli": [],
+                                "ubuntu-desktop": [],
+                                "gnome-panel": [],
+                                "gnome-settings-daemon": [],
+                                "metacity": [],
+                                "nautilus": [],
+                                "gnome-terminal": [],
+                                "xrdp": [],								
+                                "chromium-browser": [],								
+                                "ruby": [],
+                                "node": [],								
+                                "unzip": []
+                            }
+                        },
+						"files" : {
+							"/var/www/html/index.html" : {
+								"content" : { "Fn::Join" : ["\n", [
+								"<img src=\"", {"Fn::FindInMap" : ["Region2Examples", {"Ref" : "AWS::Region"}, "Examples"]}, "/cloudformation_graphic.png\" alt=\"AWS CloudFormation Logo\"/>",
+								"<h1>Congratulations, you have successfully launched the AWS CloudFormation sample.</h1>"
+								]]},
+								"mode"    : "000644",
+								"owner"   : "root",
+								"group"   : "root"
+							}
+						},
+						"services" : {
+							"sysvinit" : {
+								"httpd"    : { "enabled" : "true", "ensureRunning" : "true" }
+							}
+						},
+                        "commands": {
+                            "01update_pkgs": {
+                                "command": "apt-get update && apt-get upgrade -y"
+                            },
+                            "02next_command": {
+                                "command": "echo the numbering here has to be in order... 01, 02, 03 and so on... last item is not comma'd"
+                            },
+                            "03ubuntu": {
+                                "command": "apt-get -y install ubuntu-desktop"
+                            },
+                            "04gnome": {
+                                "command": "apt-get -y install gnome-panel gnome-settings-daemon metacity nautilus gnome-terminal"
+                            },
+                            "05xrdp": {
+                                "command": "apt-get -y install xrdp"
+                            },
+                            "06chromium": {
+                                "command": "apt-get -y install chromium-browser"
+                            },							
+                            "07vscode1": {
+                                "command": "curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg"
+                            },
+                            "08vscode2": {
+                                "command": "sudo install -o root -g root -m 644 microsoft.gpg /etc/apt/trusted.gpg.d/"
+                            },
+                            "09vscode3": {
+                                "command": "sudo sh -c 'echo \"deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main\" > /etc/apt/sources.list.d/vscode.list'"
+                            },
+                            "10node1": {
+                                "command": "curl --silent --location https://rpm.nodesource.com/setup_6.x | sudo bash -\n"
+                            },
+                            "11node2": {
+                                "command": "apt-get -y install nodejs\n"
+                            }							
+							
+                        }
+                    }
+                }
+            },
+            "Properties": {
+                "BlockDeviceMappings": [
+                    {
+                        "DeviceName": "/dev/sda1",
+                        "Ebs": {
+                            "VolumeSize": {
+                                "Ref": "EBSVolumeSize"
+                            }
+                        }
+                    }
+                ],
+                "ImageId": {
+                    "Ref": "AMI"
+                },
+                "InstanceType": {
+                    "Ref": "InstanceType"
+                },
+                "KeyName": {
+                    "Ref": "KeyName"
+                },
+                "SecurityGroupIds": [
+                    {
+                        "Ref": "SecurityGroup"
+                    }
+                ],
+                "SubnetId": {
+                    "Ref": "Subnet"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Ref": "InstanceName"
+                        }
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "",
+                            [
+								"#!/bin/bash -xe\n",
+								"apt-get update\n",
+								"apt-get -y install python-pip\n",
+								"pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz\n",
+								"python .local/lib/python2.7/site-packages/easy_install.py aws-cfn-bootstrap-latest\n",
+                                "/usr/local/bin/cfn-init --region ", { "Ref" : "AWS::Region" },
+                                "    -s ", { "Ref" : "AWS::StackName" }, " -r NodeInstance ", "|| error_exit 'Failed to run cfn-init'\n",         
+								"apt-get -y install ubuntu-desktop\n",
+                                "apt-get -y install gnome-panel gnome-settings-daemon metacity nautilus gnome-terminal\n",
+                                "apt-get -y install xrdp\n",
+                                "apt-get -y install chromium-browser\n",
+                                "curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg\n",
+                                "sudo install -o root -g root -m 644 microsoft.gpg /etc/apt/trusted.gpg.d/\n",
+                                "sudo sh -c 'echo \"deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main\" > /etc/apt/sources.list.d/vscode.list'\n",
+                                "curl --silent --location https://rpm.nodesource.com/setup_6.x | sudo bash -\n",
+                                "apt-get -y install nodejs\n",                              
+                                "mkdir -p /var/www/html/example-app\n",
+                                "groupadd www\n",
+                                "usermod -a -G www ubuntu\n",
+                                "chown -R ubuntu:www /var/www\n",
+                                "chmod 2775 /var/www\n",
+                                "find /var/www -type d -exec chmod 2775 {} +\n",
+                                "find /var/www -type f -exec chmod 0664 {} +\n",
+                                "cat << EOF >> /var/www/html/example-app/server.js\nvar http = require('http');\nvar port = 9500; // Must change IPTables also\nvar server = http.createServer(function(request, response) {\n    response.setHeader('Content-Type', 'text/html');\n    response.end('<h1>Node.js server is running!</h1>');\n});\nserver.listen(port, function() {\n    console.log('Node.js server listening on port: ' + port);\n});\n\nEOF\n",
+                                "apt-get -y install nginx\n",
+                                "chkconfig nginx on\n",
+                                "cat << EOF >> /var/www/html/index.html\n<h1>Nginx server, running at <code>/var/www/html</code></h1>\nEOF\n",
+                                "cat << EOF > /etc/nginx/nginx.conf\n# For more information on configuration, see:\n#   * Official English Documentation: http://nginx.org/en/docs/\n#   * Official Russian Documentation: http://nginx.org/ru/docs/\n\nuser nginx;\nworker_processes auto;\nerror_log /var/log/nginx/error.log;\npid /var/run/nginx.pid;\n\n# Load dynamic modules. See /usr/share/doc/nginx/README.dynamic.\ninclude /usr/share/nginx/modules/*.conf;\n\nevents {\n    worker_connections 1024;\n}\n\nhttp {\n    log_format  main  '$remote_addr - $remote_user [$time_local] \"$request\" '\n                      '$status $body_bytes_sent \"$http_referer\" '\n                      '\"$http_user_agent\" \"$http_x_forwarded_for\"';\n\n    access_log  /var/log/nginx/access.log  main;\n\n    sendfile            on;\n    tcp_nopush          on;\n    tcp_nodelay         on;\n    keepalive_timeout   65;\n    types_hash_max_size 2048;\n\n    include             /etc/nginx/mime.types;\n    default_type        application/octet-stream;\n\n    # Load modular configuration files from the /etc/nginx/conf.d directory.\n    # See http://nginx.org/en/docs/ngx_core_module.html#include\n    # for more information.\n    include /etc/nginx/conf.d/*.conf;\n\n    index   index.html index.htm;\n\n    upstream node_app {\n        server 127.0.0.1:9500;\n    }\n\n    server {\n        listen       80 default_server;\n        listen       [::]:80 default_server;\n        server_name  localhost;\n        root         /var/www/html;\n\n        # Load configuration files for the default server block.\n        include /etc/nginx/default.d/*.conf;\n\n        location / {\n            proxy_pass   http://node_app;\n        }\n\n        # redirect server error pages to the static page /40x.html\n        #\n        error_page 404 /404.html;\n            location = /40x.html {\n        }\n\n        # redirect server error pages to the static page /50x.html\n        #\n        error_page 500 502 503 504 /50x.html;\n            location = /50x.html {\n        }\n\n        # proxy the PHP scripts to Apache listening on 127.0.0.1:80\n        #\n        #location ~ \\.php$ {\n        #    proxy_pass   http://127.0.0.1;\n        #}\n\n        # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000\n        #\n        #location ~ \\.php$ {\n        #    root           html;\n        #    fastcgi_pass   127.0.0.1:9000;\n        #    fastcgi_index  index.php;\n        #    fastcgi_param  SCRIPT_FILENAME  /scripts$fastcgi_script_name;\n        #    include        fastcgi_params;\n        #}\n\n        # deny access to .htaccess files, if Apache's document root\n        # concurs with nginx's one\n        #\n        #location ~ /\\.ht {\n        #    deny  all;\n        #}\n    }\n\n# Settings for a TLS enabled server.\n#\n#    server {\n#        listen       443 ssl http2 default_server;\n#        listen       [::]:443 ssl http2 default_server;\n#        server_name  _;\n#        root         /var/www/html;\n#\n#        ssl_certificate \"/etc/pki/nginx/server.crt\";\n#        ssl_certificate_key \"/etc/pki/nginx/private/server.key\";\n#        # It is *strongly* recommended to generate unique DH parameters\n#        # Generate them with: openssl dhparam -out /etc/pki/nginx/dhparams.pem 2048\n#        #ssl_dhparam \"/etc/pki/nginx/dhparams.pem\";\n#        ssl_session_cache shared:SSL:1m;\n#        ssl_session_timeout  10m;\n#        ssl_protocols TLSv1 TLSv1.1 TLSv1.2;\n#        ssl_ciphers HIGH:SEED:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!RSAPSK:!aDH:!aECDH:!EDH-DSS-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA:!SRP;\n#        ssl_prefer_server_ciphers on;\n#\n#        # Load configuration files for the default server block.\n#        include /etc/nginx/default.d/*.conf;\n#\n#        location / {\n#        }\n#\n#        error_page 404 /404.html;\n#            location = /40x.html {\n#        }\n#\n#        error_page 500 502 503 504 /50x.html;\n#            location = /50x.html {\n#        }\n#    }\n\n}\n\nEOF\n",
+                                "service nginx restart\n",
+                                "cat << EOF >> /var/www/html/example-app/pm2config.json\n{\n\t\"apps\": [{\n\t\t\"name\"\t: \"example-app\",\n\t\t\"script\": \"/var/www/html/example-app/server.js\",\n\t\t\"watch\":  [\"views\", \"public\", \"routes\"],\n\t\t\"instances\" : \"max\",\n    \t\"exec_mode\" : \"cluster\",\n\t\t\"env\": {\n\t\t\t\"NODE_ENV\": \"development\"\n\t\t},\n\t\t\"env_production\": {\n\t\t\t\"NODE_ENV\": \"production\"\n\t\t},\n\t\t\"log_date_format\":  \"MM-DD-YYYY HH:mm Z\",\n\t\t\"error_file\":  \"/home/ubuntu/.pm2/logs/myapp_err.log\",\n\t\t\"out_file\":  \"/home/ubuntu/.pm2/logs/myapp_out.log\"\n\t}]\n}\n\nEOF\n",
+                                "npm install pm2 -g\n",
+                                "pm2 startup -u ubuntu --hp /home/ubuntu\n",
+                                "sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemv -u ubuntu --hp /home/ubuntu\npm2 start /var/www/html/example-app/pm2config.json -u ubuntu --hp /home/ubuntu\n",
+                                "pm2 save\n",
+                                "chown -R ubuntu:ubuntu /home/ubuntu/.pm2\n",
+								"curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg",
+								"sudo install -o root -g root -m 644 microsoft.gpg /etc/apt/trusted.gpg.d/",
+								"sudo sh -c 'echo \"deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main\" > /etc/apt/sources.list.d/vscode.list'",
+                                "\n"                                                               								
+                            ]
+                        ]
+                    }
+                }
+            },
+            "Type": "AWS::EC2::Instance"
+            },
+        "EIPAddress": {
+            "Type": "AWS::EC2::EIP"
+        },
+        "IPAssoc": {
+            "Type": "AWS::EC2::EIPAssociation",
+            "Properties": {
+                "InstanceId": {
+                    "Ref": "NodeInstance"
+                },
+                "EIP": {
+                    "Ref": "EIPAddress"
+                }
+            }
+        },
+        "SecurityGroup": {
+            "Properties": {
+                "GroupDescription": "Allow RDP, SSH, HTTP, and HTTPS access",
+                "SecurityGroupIngress": [
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "FromPort": "22",
+                        "IpProtocol": "tcp",
+                        "ToPort": "22"
+                    },
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "FromPort": "443",
+                        "IpProtocol": "tcp",
+                        "ToPort": "443"
+                    },
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "FromPort": "3389",
+                        "IpProtocol": "tcp",
+                        "ToPort": "3389"
+                    }				
+                ],
+                "VpcId": {
+                    "Ref": "VPC"
+                }
+            },
+            "Type": "AWS::EC2::SecurityGroup"
+        }
+    }
+}
