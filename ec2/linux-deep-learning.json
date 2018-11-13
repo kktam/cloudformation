@@ -215,71 +215,16 @@
                     "config": {
                         "packages": {
                             "apt": {
-                                "httpd": [],							
-                                "awscli": [],
-                                "ubuntu-desktop": [],
-                                "gnome-panel": [],
-                                "gnome-settings-daemon": [],
-                                "metacity": [],
-                                "nautilus": [],
-                                "gnome-terminal": [],
-                                "xrdp": [],								
-                                "chromium-browser": [],								
-                                "ruby": [],
-                                "node": [],								
-                                "unzip": []
+                                "httpd": []
                             }
                         },
-						"files" : {
-							"/var/www/html/index.html" : {
-								"content" : { "Fn::Join" : ["\n", [
-								"<img src=\"", {"Fn::FindInMap" : ["Region2Examples", {"Ref" : "AWS::Region"}, "Examples"]}, "/cloudformation_graphic.png\" alt=\"AWS CloudFormation Logo\"/>",
-								"<h1>Congratulations, you have successfully launched the AWS CloudFormation sample.</h1>"
-								]]},
-								"mode"    : "000644",
-								"owner"   : "root",
-								"group"   : "root"
-							}
-						},
-						"services" : {
-							"sysvinit" : {
-								"httpd"    : { "enabled" : "true", "ensureRunning" : "true" }
-							}
-						},
                         "commands": {
                             "01update_pkgs": {
                                 "command": "apt-get update && apt-get upgrade -y"
                             },
                             "02next_command": {
                                 "command": "echo the numbering here has to be in order... 01, 02, 03 and so on... last item is not comma'd"
-                            },
-                            "03ubuntu": {
-                                "command": "apt-get -y install ubuntu-desktop"
-                            },
-                            "04gnome": {
-                                "command": "apt-get -y install gnome-panel gnome-settings-daemon metacity nautilus gnome-terminal"
-                            },
-                            "05xrdp": {
-                                "command": "apt-get -y install xrdp"
-                            },
-                            "06chromium": {
-                                "command": "apt-get -y install chromium-browser"
-                            },							
-                            "07vscode1": {
-                                "command": "curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg"
-                            },
-                            "08vscode2": {
-                                "command": "sudo install -o root -g root -m 644 microsoft.gpg /etc/apt/trusted.gpg.d/"
-                            },
-                            "09vscode3": {
-                                "command": "sudo sh -c 'echo \"deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main\" > /etc/apt/sources.list.d/vscode.list'"
-                            },
-                            "10node1": {
-                                "command": "curl --silent --location https://rpm.nodesource.com/setup_6.x | sudo bash -\n"
-                            },
-                            "11node2": {
-                                "command": "apt-get -y install nodejs\n"
-                            }							
+                            }						
 							
                         }
                     }
@@ -329,17 +274,17 @@
 								"#!/bin/bash -xe\n",
 								"apt-get update\n",
 								"apt-get -y install python-pip\n",
-								"pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz\n",
-								"python .local/lib/python2.7/site-packages/easy_install.py aws-cfn-bootstrap-latest\n",
-                                "/usr/local/bin/cfn-init --region ", { "Ref" : "AWS::Region" },
-                                "    -s ", { "Ref" : "AWS::StackName" }, " -r NodeInstance ", "|| error_exit 'Failed to run cfn-init'\n",         
 								"apt-get -y install ubuntu-desktop\n",
-                                "apt-get -y install gnome-panel gnome-settings-daemon metacity nautilus gnome-terminal\n",
+                                "apt-get -y install gnome-panel\n",
+								"apt-get -y install gnome-settings-daemon\n",
+								"apt-get -y install metacity\n",
+								"apt-get -y install nautilus\n",
+								"apt-get -y install gnome-terminal\n",
                                 "apt-get -y install xrdp\n",
                                 "apt-get -y install chromium-browser\n",
                                 "curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg\n",
-                                "sudo install -o root -g root -m 644 microsoft.gpg /etc/apt/trusted.gpg.d/\n",
-                                "sudo sh -c 'echo \"deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main\" > /etc/apt/sources.list.d/vscode.list'\n",
+                                "install -o root -g root -m 644 microsoft.gpg /etc/apt/trusted.gpg.d/\n",
+                                "sh -c 'echo \"deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main\" > /etc/apt/sources.list.d/vscode.list'\n",
                                 "curl --silent --location https://rpm.nodesource.com/setup_6.x | sudo bash -\n",
                                 "apt-get -y install nodejs\n",                              
                                 "mkdir -p /var/www/html/example-app\n",
@@ -364,6 +309,8 @@
 								"curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg",
 								"sudo install -o root -g root -m 644 microsoft.gpg /etc/apt/trusted.gpg.d/",
 								"sudo sh -c 'echo \"deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main\" > /etc/apt/sources.list.d/vscode.list'",
+                                "/usr/local/bin/cfn-init --region ", { "Ref" : "AWS::Region" },
+                                "    -s ", { "Ref" : "AWS::StackName" }, " -r NodeInstance ", "|| error_exit 'Failed to run cfn-init'\n",								
                                 "\n"                                                               								
                             ]
                         ]
