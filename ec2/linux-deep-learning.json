@@ -311,6 +311,7 @@
                                 "apt-get -y install chromium-browser\n",
 								"apt-get -y install gdm3\n",
 								"sudo /etc/init.d/gdm3 start\n",
+								"systemctl set-default graphical.target\n",								
                                 "/usr/local/bin/cfn-init --region ", { "Ref" : "AWS::Region" },
                                 "    -s ", { "Ref" : "AWS::StackName" }, " -r NodeInstance ", "|| error_exit 'Failed to run cfn-init'\n",								
                                 "\n"                                                               								
